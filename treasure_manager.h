@@ -23,6 +23,6 @@ typedef struct {
 } Treasure;
 
 void logAction(const char *huntId, const char *action);
-void addTreasure(const char *hunt_id, Treasure treasure);
+void addTreasure(const char *huntId, Treasure treasure);
 
 #endif
