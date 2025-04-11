@@ -11,18 +11,23 @@
 #include <time.h>
 #include <dirent.h>
 
-#define LOG_FILE "logged_hunt"
-
 typedef struct {
     int id;
-    char username[50];
+    char username[100];
     float latitude;
     float longitude;
-    char clue[256];
+    char clue[500];
     int value;
 } Treasure;
 
-void logAction(const char *huntId, const char *action);
+void actionLog(const char *huntId, const char *action);
+Treasure giveTreasureDetails();
 void addTreasure(const char *huntId, Treasure treasure);
+void printTreasure(const Treasure* treasure);
+void listTreasures(const char *huntId);
+void viewTreasure(const char *huntId, int id);
+void removeTreasure(const char *huntId, int id);
+void removeHunt(const char *huntId);
+void showActionLog(const char *huntId);
 
 #endif

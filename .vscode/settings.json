@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "oui": "c",
+        "stdlib.h": "c"
+    }
+}
