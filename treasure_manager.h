@@ -25,6 +25,7 @@ Treasure giveTreasureDetails();
 void addTreasure(const char *huntId, Treasure treasure);
 void printTreasure(const Treasure* treasure);
 void listTreasures(const char *huntId);
+void listTreasureIds(const char* huntId);
 void viewTreasure(const char *huntId, int id);
 void removeTreasure(const char *huntId, int id);
 void removeHunt(const char *huntId);

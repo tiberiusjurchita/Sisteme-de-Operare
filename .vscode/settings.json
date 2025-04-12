@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "oui": "c",
-        "stdlib.h": "c"
+        "stdlib.h": "c",
+        "treasure_manager.h": "c"
     }
 }

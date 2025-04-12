@@ -1,19 +1,21 @@
 #include "treasure_manager.h"
 
+
 void actionLog(const char* huntId, const char* action){
     char log[500];
-    char linkName[500];
-
-    snprintf(log, sizeof(log), "%s/%s", huntId, "loggedHunt");
+    char link[500];
+    sprintf(log, "%s/%s", huntId, "logged_hunt");
+    sprintf(link, "logged_hunt - %s", huntId);
 
     int file = open(log, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
     if(file != -1){
-        dprintf(file, "%s\n", action);
+        char buffer[500];
+        sprintf(buffer, "%s\n", action);
+        write(file, buffer, strlen(buffer));
         close(file);
     }
 
-    snprintf(linkName, sizeof(linkName), "loggedHunt - %s", huntId);
-    symlink(log, linkName);
+    symlink(log, link);
 }
 
 Treasure giveTreasureDetails(){
@@ -41,7 +43,7 @@ Treasure giveTreasureDetails(){
 void addTreasure(const char* huntId, Treasure treasure){
     mkdir(huntId, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
     char path[500];
-    snprintf(path, sizeof(path), "%s/treasures.bin", huntId);
+    sprintf(path, "%s/treasures.bin", huntId);
     int file = open(path, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
     if(file == -1){
@@ -70,10 +72,10 @@ void printTreasure(const Treasure* treasure){
 
 void listTreasures(const char* huntId){
     char path[500];
-    struct stat status;
+    struct stat stats;
     Treasure treasure;
 
-    snprintf(path, sizeof(path), "%s/treasures.bin", huntId);
+    sprintf(path, "%s/treasures.bin", huntId);
     int file = open(path, O_RDONLY);
 
     if(file == -1){
@@ -81,15 +83,15 @@ void listTreasures(const char* huntId){
         return;
     }
 
-    if(stat(path, &status) == -1){
-        perror("!!Status error!!");
+    if(stat(path, &stats) == -1){
+        perror("!!stats error!!");
         close(file);
         return;
     }
 
     printf("Hunt: %s\n", huntId);
-    printf("File size: %ld bytes\n", status.st_size);
-    printf("Last modified: %s", ctime(&status.st_mtime));
+    printf("File size: %ld bytes\n", stats.st_size);
+    printf("Last modified: %s", ctime(&stats.st_mtime));
 
     while (read(file, &treasure, sizeof(Treasure)) == sizeof(Treasure))
         printTreasure(&treasure);
@@ -98,11 +100,28 @@ void listTreasures(const char* huntId){
     actionLog(huntId, "Listed the treasures!");
 }
 
+void listTreasureIds(const char* huntId){
+    char path[500];
+    Treasure treasure;
+    sprintf(path, "%s/treasures.bin", huntId);
+
+    int file = open(path, O_RDONLY);
+    if(file == -1){
+        perror("!!Failed to open the file!!");
+        return;
+    }
+
+    printf("List of treasure Id's from this hunt:\n");
+    while(read(file, &treasure, sizeof(Treasure)) == sizeof(Treasure))
+        printf("->%d\n", treasure.id);
+    close(file);
+}
+
 void viewTreasure(const char* huntId, int id){
     char path[500];
     Treasure treasure;
 
-    snprintf(path, sizeof(path), "%s/treasures.bin", huntId);
+    sprintf(path, "%s/treasures.bin", huntId);
     int file = open(path, O_RDONLY);
 
     if(file == -1){
@@ -119,7 +138,7 @@ void viewTreasure(const char* huntId, int id){
         }
     }
 
-    printf("The treasure with the ID: %d was not found in the hunt %s.\n", id, huntId);
+    printf("The treasure was not found in the hunt.\n");
     close(file);
 }
 
@@ -129,8 +148,8 @@ void removeTreasure(const char *huntId, int id){
     Treasure treasure;
     int found = 0;
 
-    snprintf(path, sizeof(path), "%s/treasures.bin", huntId);
-    snprintf(temp, sizeof(temp), "%s/temp.bin", huntId);
+    sprintf(path, "%s/treasures.bin", huntId);
+    sprintf(temp, "%s/temp.bin", huntId);
     int file = open(path, O_RDONLY);
     int tempFile = open(temp, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
@@ -140,21 +159,21 @@ void removeTreasure(const char *huntId, int id){
     }
     
     while (read(file, &treasure, sizeof(Treasure)) == sizeof(Treasure)){
-        if(treasure.id != id)
-            write(tempFile, &treasure, sizeof(treasure));
+        if(treasure.id != id) //daca id-ul gasit nu este cel introds
+            write(tempFile, &treasure, sizeof(treasure));//il copiem in temp
         else
-            found = 1;
+            found = 1;//daca este gasit, nu il copiem si doar marcam ca a fost gasit
     }
 
     close(file);
     close(tempFile);
 
-    if(found){
-        rename(temp, path);
-        actionLog(huntId, "Removed a treasure!");
+    if(found){//daca a fost gasit id-ul cautat
+        rename(temp, path);//redenumim temp(unde nu se afla comoara pe care voiam sa o eliminam)cu treasures
+        actionLog(huntId, "Removed a treasure!");//scriem in action log ce facem
     }
     else{
-        remove(temp);
+        remove(temp);//daca nu este gasit stergem temp si lasam fisierul original
         printf("The treasure with the ID: %d was not found\n", id);
     }
     printf("The treasure was removed\n");
@@ -165,9 +184,9 @@ void removeHunt(const char* huntId){
     char log[500];
     char link[500];
 
-    snprintf(treasure, sizeof(treasure), "%s/treasures.bin", huntId);
-    snprintf(log, sizeof(log), "%s/%s", huntId, "loggedHunt");
-    snprintf(link, sizeof(link), "loggedHunt - %s", huntId);
+    sprintf(treasure, "%s/treasures.bin", huntId);
+    sprintf(log, "%s/%s", huntId, "logged_hunt");
+    sprintf(link, "logged_hunt - %s", huntId);
 
     remove(treasure);
     remove(log);
@@ -180,7 +199,8 @@ void removeHunt(const char* huntId){
 void showActionLog(const char* huntId){
     char log[500];
     char ch;
-    snprintf(log, sizeof(log), "%s/loggedHunt", huntId);
+
+    sprintf(log, "%s/logged_hunt", huntId);
 
     int file = open(log, O_RDONLY);
     if(file == -1){
