@@ -67,7 +67,7 @@ void printTreasure(const Treasure* treasure){
     printf("\t->Longitude: %.2f\n", treasure->longitude);
     printf("Clue: %s\n", treasure->clue);
     printf("Value: %d\n", treasure->value);
-    printf("------------------------------------\n");
+    printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
 }
 
 void listTreasures(const char* huntId){
