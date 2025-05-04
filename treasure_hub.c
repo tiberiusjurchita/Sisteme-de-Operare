@@ -17,3 +17,13 @@ void sendSignalToMonitor(int sig) {
         printf("Monitor is not running.\n");
     }
 }
+
+void writeCommandInFile(const char *cmd) {
+    int fd = open(int fd = open(CMD_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+    if (fd == -1) {
+        perror("Failed to open command file");
+        return;
+    }
+    write(fd, cmd, strlen(cmd));
+    close(fd);
+}
