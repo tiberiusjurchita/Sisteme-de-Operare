@@ -1,29 +1,42 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <signal.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <fcntl.h>
-#include <errno.h>
+#include "treasure_hub.h"
 
-pid_t monitor_pid = -1;
-int monitor_stopping = 0;
+pid_t pid = 0;
+int monitorStopping = 0;
 
-void sendSignalToMonitor(int sig) {
-    if (monitor_pid > 0) {
-        kill(monitor_pid, sig);
-    } else {
-        printf("Monitor is not running.\n");
+int monitorStatus(){
+    return pid > 0;
+}
+
+void sigchldController(int signal){
+    int status;
+    pid_t wPid = waitpid(pid, &status, WNOHANG);
+    if(wPid > 0){
+        printf("|MONITOR ENDED WITH STATUS %d|\n", status);
+        pid = 0;
+        monitorStopping = 0;
     }
 }
 
-void writeCommandInFile(const char *cmd) {
-    int fd = open(int fd = open(CMD_FILE, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-    if (fd == -1) {
-        perror("Failed to open command file");
+void setupSigchldController(){
+    struct sigaction sa;
+    sa.sa_handler = sigchldController;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = SA_RESTART;
+
+    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
+        perror("!ERROR!");
+        exit(1);
+    }
+}
+
+void startMonitor(){
+    if(pid > 0){
+        printf("!The monitor is already running!");
         return;
     }
-    write(fd, cmd, strlen(cmd));
-    close(fd);
+
+    setupSigchldController();
+
+    pid = fork();
 }
