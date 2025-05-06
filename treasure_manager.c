@@ -1,5 +1,5 @@
+#include <stdio.h>
 #include "treasure_manager.h"
-
 
 void actionLog(const char* huntId, const char* action){
     char log[500];
@@ -214,4 +214,32 @@ void showActionLog(const char* huntId){
         putchar(ch);
     
     close(file);
+}
+
+
+void listHunts() {
+    DIR *dir = opendir(".");
+    if (!dir) {
+        perror("!Failed to open current directory!");
+        return;
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_DIR && strncmp(entry->d_name, "hunt_", 5) == 0) {
+            char path[512];
+            snprintf(path, sizeof(path), "%s/treasures.bin", entry->d_name);
+            int count = 0;
+            Treasure t;
+            int fd = open(path, O_RDONLY);
+            if (fd != -1) {
+                while (read(fd, &t, sizeof(Treasure)) == sizeof(Treasure))
+                    count++;
+                close(fd);
+            }
+            printf("-> %s: %d treasures\n", entry->d_name, count);
+        }
+    }
+
+    closedir(dir);
 }

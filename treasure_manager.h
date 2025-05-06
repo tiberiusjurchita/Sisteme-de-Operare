@@ -30,5 +30,6 @@ void viewTreasure(const char *huntId, int id);
 void removeTreasure(const char *huntId, int id);
 void removeHunt(const char *huntId);
 void showActionLog(const char *huntId);
+void listHunts(void);
 
 #endif

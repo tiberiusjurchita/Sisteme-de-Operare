@@ -2,6 +2,13 @@
     "files.associations": {
         "oui": "c",
         "stdlib.h": "c",
-        "treasure_manager.h": "c"
+        "treasure_manager.h": "c",
+        "stdio.h": "c",
+        "types.h": "c",
+        "signal.h": "c",
+        "unistd.h": "c",
+        "wait.h": "c",
+        "time.h": "c",
+        "string.h": "c"
     }
 }
