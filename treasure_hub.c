@@ -48,7 +48,7 @@ void startMonitor(){
 
     pid = fork();
     if(pid == 0){
-        execl("./treasure", "treasure", NULL);
+        execl("./monitor", "monitor", NULL);
         perror("execl failed");
         exit(1);
     }
@@ -84,6 +84,12 @@ void handleCommands(const char* command){
     kill(pid, SIGUSR1);
 }
 
+void waitForMonitor(){
+    while(monitorStatus()){
+        sleep(1);
+    }
+}
+
 void stopMonitor(){
     if(!monitorStatus()){
         printf("!Couldn't stop the monitor!\n!The monitor is not running!");
@@ -92,11 +98,52 @@ void stopMonitor(){
 
     monitorStopping = 1;
     kill(pid, SIGUSR2);
+    waitForMonitor();
+
     printf("~The monitor is shutting down~");
 }
 
-void waitForMonitor(){
-    while(monitorStatus()){
-        sleep(1);
+int main() {
+    char input[500];
+    char huntId[500];
+    char treasureId[500];
+
+    while (1) {
+        printf("\n> ");
+        fflush(stdout);
+        if (!fgets(input, sizeof(input), stdin))
+            break;
+
+        input[strcspn(input, "\n")] = '\0';
+
+        if (strcmp(input, "startMonitor") == 0) {
+            startMonitor();
+        } else if (strcmp(input, "stopMonitor") == 0) {
+            stopMonitor();
+        } else if (strcmp(input, "listHunts") == 0) {
+            handleCommands("listHunts");
+        } else if (strncmp(input, "listTreasures", 13) == 0) {
+            if (sscanf(input, "listTreasures %s", huntId) == 1) {
+                char command[500];
+                snprintf(command, sizeof(command), "listTreasures %s", huntId);
+                handleCommands(command);
+            }
+        } else if (strncmp(input, "viewTreasure", 12) == 0) {
+            if (sscanf(input, "viewTreasure %s %s", huntId, treasureId) == 2) {
+                char command[500];
+                snprintf(command, sizeof(command), "viewTreasure %s %s", huntId, treasureId);
+                handleCommands(command);
+            }
+        } else if (strcmp(input, "exit") == 0) {
+            if (monitorStatus()) {
+                printf("!Cannot exit while monitor is running!\n");
+            } else {
+                break;
+            }
+        } else {
+            printf("!Unknown command!\n");
+        }
     }
+
+    return 0;
 }

@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
+#include <fcntl.h>
 #include "treasure_manager.h"
 
 
@@ -23,20 +25,21 @@ void handleSIGUSR1(int signal){
 
     buffer[bytes] = '\0';
     buffer[strcspn(buffer, "\n")] = 0;
+    buffer[strcspn(buffer, "\r")] = 0;
 
     char command[500], huntId[500], treasure[500];
     int things = sscanf(buffer, "%s %s %s", command, huntId, treasure);
 
     if(strcmp(command, "listHunts") == 0){
-        printf("~Listing hunts~");
+        printf("~Listing hunts~\n");
         listHunts();
     }
     else if(strcmp(command, "listTreasures") == 0 && things >= 2){
-        printf("~Listing treasures~");
+        printf("~Listing treasures~\n");
         listTreasures(huntId);
     }
     else if(strcmp(command, "viewTreasure") == 0 && things >= 3){
-        printf("~Opening the treasure~");
+        printf("~Opening the treasure~\n");
         int treasureId = atoi(treasure);
         viewTreasure(huntId, treasureId);
     }
