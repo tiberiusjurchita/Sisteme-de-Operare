@@ -6,7 +6,6 @@
 #include <sys/types.h>
 #include <sys/wait.h> 
 #include <signal.h> 
-#include "treasure_hub.h"
 #include "treasure_manager.h"
 
 pid_t pid = 0;

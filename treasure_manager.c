@@ -216,7 +216,6 @@ void showActionLog(const char* huntId){
     close(file);
 }
 
-
 void listHunts() {
     DIR *dir = opendir(".");
     if (!dir) {
