@@ -6,9 +6,6 @@
 #include <fcntl.h>
 #include "treasure_manager.h"
 
-
-static int request = 0;
-
 void handleSIGUSR1(int signal){
     int file = open("command.txt", O_RDONLY);
     if(file == -1){

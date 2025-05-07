@@ -104,9 +104,9 @@ void stopMonitor(){
 }
 
 int main() {
-    char input[500];
-    char huntId[500];
-    char treasureId[500];
+    char input[2048];
+    char huntId[2048];
+    char treasureId[2048];
 
     while (1) {
         printf("\n> ");
@@ -124,13 +124,13 @@ int main() {
             handleCommands("listHunts");
         } else if (strncmp(input, "listTreasures", 13) == 0) {
             if (sscanf(input, "listTreasures %s", huntId) == 1) {
-                char command[500];
+                char command[2048];
                 snprintf(command, sizeof(command), "listTreasures %s", huntId);
                 handleCommands(command);
             }
         } else if (strncmp(input, "viewTreasure", 12) == 0) {
             if (sscanf(input, "viewTreasure %s %s", huntId, treasureId) == 2) {
-                char command[500];
+                char command[2048];
                 snprintf(command, sizeof(command), "viewTreasure %s %s", huntId, treasureId);
                 handleCommands(command);
             }
