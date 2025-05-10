@@ -242,3 +242,17 @@ void listHunts() {
 
     closedir(dir);
 }
+
+void calculateScore(const char* huntId) {
+    int pfd[2];
+    if (pipe(pfd) == -1) {
+        perror("!!The pipe proccess failed!!");
+        exit(1);
+    }
+
+    pid_t pid = fork();
+    if (pid < 0) {
+        perror("!!The fork process failed!!!");
+        exit(1);
+    }
+}
