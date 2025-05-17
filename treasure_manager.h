@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <dirent.h>
+#include <sys/wait.h>
 
 typedef struct {
     int id;
@@ -31,5 +32,6 @@ void removeTreasure(const char *huntId, int id);
 void removeHunt(const char *huntId);
 void showActionLog(const char *huntId);
 void listHunts(void);
+void calculateScores(void);
 
 #endif

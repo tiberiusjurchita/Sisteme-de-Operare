@@ -243,6 +243,7 @@ void listHunts() {
     closedir(dir);
 }
 
+<<<<<<< HEAD
 void calculateScore(const char* huntId) {
     int pfd[2];
     if (pipe(pfd) == -1) {
@@ -256,3 +257,60 @@ void calculateScore(const char* huntId) {
         exit(1);
     }
 }
+=======
+void calculateScores() {
+    DIR *dir = opendir(".");
+    if (!dir) {
+        perror("!Failed to open current directory!");
+        return;
+    }
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_DIR && strncmp(entry->d_name, "hunt_", 5) == 0) {
+            char huntPath[512];
+            snprintf(huntPath, sizeof(huntPath), "%s/treasures.bin", entry->d_name);
+
+            int pipefd[2];
+            if (pipe(pipefd) == -1) {
+                perror("!Pipe failed!");
+                continue;
+            }
+
+            pid_t pid = fork();
+            if (pid < 0) {
+                perror("!Fork failed!");
+                close(pipefd[0]);
+                close(pipefd[1]);
+                continue;
+            } 
+            else if (pid == 0) {
+                close(pipefd[0]);
+
+                dup2(pipefd[1], STDOUT_FILENO);
+                execl("./score_calculator", "score_calculator", huntPath, NULL);
+
+                perror("!Exec score_calculator failed!");
+                exit(1);
+            } 
+            else {
+                close(pipefd[1]);
+
+                printf("Scores for %s:\n", entry->d_name);
+
+                char buffer[1024];
+                ssize_t bytesRead;
+                while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+                    buffer[bytesRead] = '\0';
+                    printf("%s", buffer);
+                }
+
+                close(pipefd[0]);
+                waitpid(pid, NULL, 0);
+            }
+        }
+    }
+
+    closedir(dir);
+}
+>>>>>>> 2c8cc28 (tried to do phase 3 but failed :()

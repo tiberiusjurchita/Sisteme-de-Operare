@@ -9,7 +9,7 @@
 #include "treasure_manager.h"
 
 pid_t pid = 0;
-int monitorStopping = 0;
+int monitorPipeRead, monitorPipeWrite;
 
 int monitorStatus(){
     return pid > 0;
@@ -21,7 +21,6 @@ void sigchldController(int signal){
     if(wPid > 0){
         printf("!MONITOR ENDED WITH STATUS %d!\n", status);
         pid = 0;
-        monitorStopping = 0;
     }
 }
 
@@ -39,18 +38,59 @@ void setupSigchldController(){
 
 void startMonitor(){
     if(pid > 0){
-        printf("~The monitor is already running~");
+        printf("~The monitor is already running~\n");
         return;
     }
 
     setupSigchldController();
 
-    pid = fork();
-    if(pid == 0){
-        execl("./monitor", "monitor", NULL);
-        perror("execl failed");
+    int toMonitor[2], fromMonitor[2], readyPipe[2];
+
+    if (pipe(toMonitor) == -1 || pipe(fromMonitor) == -1 || pipe(readyPipe) == -1) {
+        perror("The pipe process failed");
         exit(1);
     }
+
+    pid = fork();
+    if (pid == 0) {
+        // copil
+        close(readyPipe[0]); // nu citim
+        if (dup2(toMonitor[0], 3) == -1 || dup2(fromMonitor[1], 4) == -1) {
+            perror("dup2");
+            exit(1);
+        }
+
+        // Informăm părintele că suntem gata
+        write(readyPipe[1], "R", 1);
+        close(readyPipe[1]);
+
+        close(toMonitor[0]);
+        close(toMonitor[1]);
+        close(fromMonitor[0]);
+        close(fromMonitor[1]);
+
+        execl("./monitor", "monitor", NULL);
+        perror("Exec failed");
+        exit(1);
+    }
+
+    // părinte
+    close(toMonitor[0]);
+    close(fromMonitor[1]);
+    close(readyPipe[1]);
+
+    char c;
+    // Așteptăm ca monitorul să fie gata
+    if (read(readyPipe[0], &c, 1) != 1) {
+        perror("Failed to sync with monitor");
+        exit(1);
+    }
+    close(readyPipe[0]);
+
+    monitorPipeWrite = toMonitor[1];
+    monitorPipeRead = fromMonitor[0];
+
+    printf("~Monitor started with PID %d~\n", pid);
 }
 
 void handleCommands(const char* command){
@@ -59,29 +99,27 @@ void handleCommands(const char* command){
         return;
     }
 
-    int file = open("command.txt", O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-
-    if(file == -1){
-        perror("!!Failed to open the file!!");
-        exit(1);
+    if(write(monitorPipeWrite, command, strlen(command)) == -1 ||
+       write(monitorPipeWrite, "\n", 1) == -1){
+        perror("Failed to write to monitor pipe");
+        return;
     }
-
-    if(write(file, command, strlen(command)) == -1){
-        perror("!!Failed to write in command.txt!!");
-        close(file);
-        exit(1);
-    }
-
-    if(write(file, "\n", 1) == -1){
-        perror("!!Failed to go to the next line!!");
-        close(file);
-        exit(1);
-    }
-
-    close(file);
 
     kill(pid, SIGUSR1);
+
+    char buffer[5000];
+    ssize_t n;
+    while ((n = read(monitorPipeRead, buffer, sizeof(buffer) - 1)) > 0) {
+        buffer[n] = '\0';
+        printf("%s", buffer);
+        if(n < (ssize_t)(sizeof(buffer) - 1))
+            break;
+    }
+    if(n == -1) {
+        perror("Error reading from monitor");
+    }
 }
+
 
 void waitForMonitor(){
     while(monitorStatus()){
@@ -95,9 +133,11 @@ void stopMonitor(){
         return;
     }
 
-    monitorStopping = 1;
     kill(pid, SIGUSR2);
     waitForMonitor();
+
+    close(monitorPipeWrite);
+    close(monitorPipeRead); 
 
     printf("~The monitor is shutting down~");
 }
@@ -117,29 +157,38 @@ int main() {
 
         if (strcmp(input, "startMonitor") == 0) {
             startMonitor();
-        } else if (strcmp(input, "stopMonitor") == 0) {
+        } 
+        else if (strcmp(input, "stopMonitor") == 0) {
             stopMonitor();
-        } else if (strcmp(input, "listHunts") == 0) {
+        } 
+        else if (strcmp(input, "listHunts") == 0) {
             handleCommands("listHunts");
-        } else if (strncmp(input, "listTreasures", 13) == 0) {
+        } 
+        else if (strncmp(input, "listTreasures", 13) == 0) {
             if (sscanf(input, "listTreasures %s", huntId) == 1) {
                 char command[2048];
                 snprintf(command, sizeof(command), "listTreasures %s", huntId);
                 handleCommands(command);
             }
-        } else if (strncmp(input, "viewTreasure", 12) == 0) {
+        } 
+        else if (strncmp(input, "viewTreasure", 12) == 0) {
             if (sscanf(input, "viewTreasure %s %s", huntId, treasureId) == 2) {
                 char command[2048];
                 snprintf(command, sizeof(command), "viewTreasure %s %s", huntId, treasureId);
                 handleCommands(command);
             }
-        } else if (strcmp(input, "exit") == 0) {
+        }
+        else if (strcmp(input, "calculateScores") == 0) {
+            handleCommands("calculateScores");
+        } 
+        else if (strcmp(input, "exit") == 0) {
             if (monitorStatus()) {
                 printf("!Cannot exit while monitor is running!\n");
             } else {
                 break;
             }
-        } else {
+        }
+        else {
             printf("!Unknown command!\n");
         }
     }

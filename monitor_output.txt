@@ -1,0 +1,2 @@
+!Failed to read the command!: Bad file descriptor
+~Shutting down~
