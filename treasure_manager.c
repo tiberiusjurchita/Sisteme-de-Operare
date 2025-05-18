@@ -4,7 +4,7 @@
 void actionLog(const char* huntId, const char* action){
     char log[500];
     char link[500];
-    sprintf(log, "%s/%s", huntId, "logged_hunt");
+    sprintf(log, "%s/%s", huntId, "logged_hunt"); //construieste calea fisierului pentru log-uri
     sprintf(link, "logged_hunt - %s", huntId);
 
     int file = open(log, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -15,7 +15,7 @@ void actionLog(const char* huntId, const char* action){
         close(file);
     }
 
-    symlink(log, link);
+    symlink(log, link); 
 }
 
 Treasure giveTreasureDetails(){
@@ -41,7 +41,7 @@ Treasure giveTreasureDetails(){
 }
 
 void addTreasure(const char* huntId, Treasure treasure){
-    mkdir(huntId, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH);
+    mkdir(huntId, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH); //creeaza director pentru hunt
     char path[500];
     sprintf(path, "%s/treasures.bin", huntId);
     int file = open(path, O_WRONLY | O_CREAT | O_APPEND, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
@@ -51,11 +51,11 @@ void addTreasure(const char* huntId, Treasure treasure){
         return;
     }
 
-    if(write(file, &treasure, sizeof(Treasure)) != sizeof(Treasure))
+    if(write(file, &treasure, sizeof(Treasure)) != sizeof(Treasure)) //scrie structura comorii in directorul hunt-ului
         perror("!!Failed to write in the file!!");
 
     close(file);
-    actionLog(huntId, "Added a treasure!");
+    actionLog(huntId, "Added a treasure!"); //ce se noteaza in fisierul cu log-uri
     printf("The treasure was added\n");
 }
 
@@ -72,7 +72,7 @@ void printTreasure(const Treasure* treasure){
 
 void listTreasures(const char* huntId){
     char path[500];
-    struct stat stats;
+    struct stat stats; //structura pentru a afla chestii despre fisier
     Treasure treasure;
 
     sprintf(path, "%s/treasures.bin", huntId);
@@ -83,15 +83,15 @@ void listTreasures(const char* huntId){
         return;
     }
 
-    if(stat(path, &stats) == -1){
+    if(stat(path, &stats) == -1){ //citeste informatiile despre fisier
         perror("!!stats error!!");
         close(file);
         return;
     }
 
-    printf("Hunt: %s\n", huntId);
-    printf("File size: %ld bytes\n", stats.st_size);
-    printf("Last modified: %s", ctime(&stats.st_mtime));
+    printf("Hunt: %s\n", huntId); //afiseaza numele hunt-ului
+    printf("File size: %ld bytes\n", stats.st_size); //marimea hunt-ului
+    printf("Last modified: %s", ctime(&stats.st_mtime)); //ultima oara cand a fost modificat hunt=ul
 
     while (read(file, &treasure, sizeof(Treasure)) == sizeof(Treasure))
         printTreasure(&treasure);
@@ -112,7 +112,7 @@ void listTreasureIds(const char* huntId){
     }
 
     printf("List of treasure Id's from this hunt:\n");
-    while(read(file, &treasure, sizeof(Treasure)) == sizeof(Treasure))
+    while(read(file, &treasure, sizeof(Treasure)) == sizeof(Treasure)) //citim fiecare structura treasure si returnam numai ID-ul
         printf("->%d\n", treasure.id);
     close(file);
 }
@@ -129,7 +129,7 @@ void viewTreasure(const char* huntId, int id){
         return;
     }
 
-    while (read(file, &treasure, sizeof(Treasure)) == sizeof(Treasure)){
+    while (read(file, &treasure, sizeof(Treasure)) == sizeof(Treasure)){ //cauta comoara dupa ID
         if(treasure.id == id){
             printTreasure(&treasure);
             close(file);
@@ -198,7 +198,7 @@ void removeHunt(const char* huntId){
 
 void showActionLog(const char* huntId){
     char log[500];
-    char ch;
+    char ch; //caracter temporar pentru a citi caracter cu caracter
 
     sprintf(log, "%s/logged_hunt", huntId);
 
@@ -210,25 +210,25 @@ void showActionLog(const char* huntId){
     
     printf("Action log:\n");
     
-    while(read(file, &ch, 1) == 1)
+    while(read(file, &ch, 1) == 1) //citim fisierul cu log-uri caracter cu caracter
         putchar(ch);
     
     close(file);
 }
 
 void listHunts() {
-    DIR *dir = opendir(".");
+    DIR *dir = opendir("."); //deschidem directorul curent
     if (!dir) {
         perror("!Failed to open current directory!");
         return;
     }
 
-    struct dirent *entry;
+    struct dirent *entry; //structura pentru intrarile din director
     while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_DIR && strncmp(entry->d_name, "hunt_", 5) == 0) {
+        if (entry->d_type == DT_DIR && strncmp(entry->d_name, "hunt_", 5) == 0) { //cautam ce directoare incep cu "hunt_"
             char path[512];
             snprintf(path, sizeof(path), "%s/treasures.bin", entry->d_name);
-            int count = 0;
+            int count = 0; //contro pt nr de comori
             Treasure t;
             int fd = open(path, O_RDONLY);
             if (fd != -1) {
@@ -244,7 +244,7 @@ void listHunts() {
 }
 
 void calculateScore() {
-    DIR *dir = opendir(".");
+    DIR *dir = opendir("."); //deschidem directorul curent
     if (!dir) {
         perror("!Failed to open current directory!");
         return;
@@ -252,7 +252,7 @@ void calculateScore() {
 
     struct dirent *entry;
     while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_DIR && strncmp(entry->d_name, "hunt_", 5) == 0) {
+        if (entry->d_type == DT_DIR && strncmp(entry->d_name, "hunt_", 5) == 0) {  //pentru fiecare director de tip "hunt_"
             char huntPath[512];
             snprintf(huntPath, sizeof(huntPath), "%s/treasures.bin", entry->d_name);
 
@@ -262,7 +262,7 @@ void calculateScore() {
                 continue;
             }
 
-            pid_t pid = fork();
+            pid_t pid = fork(); //cream procesul copil
             if (pid < 0) {
                 perror("!Fork failed!");
                 close(pipefd[0]);
@@ -272,9 +272,8 @@ void calculateScore() {
             else if (pid == 0) {
                 close(pipefd[0]);
 
-                dup2(pipefd[1], STDOUT_FILENO);
-                execl("./score_calculator", "score_calculator", huntPath, NULL);
-
+                dup2(pipefd[1], STDOUT_FILENO); //redirectionam stdout la pipe
+                execl("./score_calculator", "score_calculator", huntPath, NULL); //apelam programul extern pentru a calcula scorul
                 perror("!Exec score_calculator failed!");
                 exit(1);
             } 
@@ -285,7 +284,7 @@ void calculateScore() {
 
                 char buffer[1024];
                 ssize_t bytesRead;
-                while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) {
+                while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0) { //citim iesirea de la copil si o afisam
                     buffer[bytesRead] = '\0';
                     printf("%s", buffer);
                 }

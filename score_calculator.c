@@ -21,15 +21,15 @@ typedef struct UserScore {
 
 UserScore* addOrUpdate(UserScore* head, const char* username, int value) {
     UserScore* current = head;
-    while (current) {
+    while (current) { //daca userul e deja in lista
         if (strcmp(current->username, username) == 0) {
-            current->total += value;
+            current->total += value; //adaugam la total valoarea comorii userului
             return head;
         }
-        current = current->next;
+        current = current->next; //mergem mai departe
     }
 
-    UserScore* new = (UserScore*)malloc(sizeof(UserScore));
+    UserScore* new = (UserScore*)malloc(sizeof(UserScore)); //daca userul nu e in lista, il creeaza
     strcpy(new->username, username);
     new->total = value;
     new->next = head;
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     Treasure t;
     ssize_t bytes;
     while ((bytes = read(fd, &t, sizeof(Treasure))) == sizeof(Treasure)) {
-        scores = addOrUpdate(scores, t.username, t.value);
+        scores = addOrUpdate(scores, t.username, t.value); //citim din fisierul cu hunt-uri si comori si ori adaugam un user ori dam update la un user
     }
 
     if (bytes == -1) {
