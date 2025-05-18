@@ -243,7 +243,7 @@ void listHunts() {
     closedir(dir);
 }
 
-void calculateScores() {
+void calculateScore() {
     DIR *dir = opendir(".");
     if (!dir) {
         perror("!Failed to open current directory!");

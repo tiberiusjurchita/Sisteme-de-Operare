@@ -180,8 +180,8 @@ int main() {
                 printf("!Usage: viewTreasure <hunt_id> <treasure_id>\n");
             }
         }
-        else if (strcmp(input, "calculateScores") == 0) {
-            handleCommands("calculateScores");
+        else if (strcmp(input, "calculateScore") == 0) {
+            handleCommands("calculateScore");
         } 
         else if (strcmp(input, "exit") == 0) {
             if (monitorStatus()) {

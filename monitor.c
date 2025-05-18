@@ -18,13 +18,13 @@ int main() {
     sigaddset(&mask, SIGUSR1);
     sigaddset(&mask, SIGUSR2);
     if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1) {
-        perror("monitor: sigprocmask");
+        perror("!!Error sigprocmask!!");
         exit(1);
     }
 
     FILE *in = fdopen(STDIN_FILENO, "r");
     if (!in) {
-        perror("monitor: fdopen stdin");
+        perror("!!Error fdopen stdin!!");
         exit(1);
     }
 
@@ -33,7 +33,7 @@ int main() {
     while (1) {
         int sig;
         if (sigwait(&mask, &sig) != 0) {
-            perror("monitor: sigwait");
+            perror("!!Error sigwait!!");
             exit(1);
         }
 
@@ -52,7 +52,7 @@ int main() {
                     fflush(stderr);
                     exit(0);
                 } else {
-                    perror("monitor: fgets command");
+                    perror("!!Error fgets command!!");
                     continue;
                 }
             }
@@ -75,9 +75,9 @@ int main() {
                 printf("\n~Opening treasure %d in hunt %s~\n\n", treasureId, huntId);
                 viewTreasure(huntId, treasureId);
             }
-            else if (strcmp(command, "calculateScores") == 0) {
-                printf("~Calculating scores~\n\n");
-                calculateScores();
+            else if (strcmp(command, "calculateScore") == 0) {
+                printf("~Calculating score~\n\n");
+                calculateScore();
             }
             else {
                 printf("!Invalid command: %s!\n", buffer);

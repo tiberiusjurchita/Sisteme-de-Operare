@@ -32,6 +32,6 @@ void removeTreasure(const char *huntId, int id);
 void removeHunt(const char *huntId);
 void showActionLog(const char *huntId);
 void listHunts(void);
-void calculateScores(void);
+void calculateScore(void);
 
 #endif

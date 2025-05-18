@@ -29,11 +29,11 @@ UserScore* addOrUpdate(UserScore* head, const char* username, int value) {
         current = current->next;
     }
 
-    UserScore* newNode = (UserScore*)malloc(sizeof(UserScore));
-    strcpy(newNode->username, username);
-    newNode->total = value;
-    newNode->next = head;
-    return newNode;
+    UserScore* new = (UserScore*)malloc(sizeof(UserScore));
+    strcpy(new->username, username);
+    new->total = value;
+    new->next = head;
+    return new;
 }
 
 void freeScores(UserScore* head) {
@@ -58,12 +58,12 @@ int main(int argc, char* argv[]) {
 
     UserScore* scores = NULL;
     Treasure t;
-    ssize_t bytesRead;
-    while ((bytesRead = read(fd, &t, sizeof(Treasure))) == sizeof(Treasure)) {
+    ssize_t bytes;
+    while ((bytes = read(fd, &t, sizeof(Treasure))) == sizeof(Treasure)) {
         scores = addOrUpdate(scores, t.username, t.value);
     }
 
-    if (bytesRead == -1) {
+    if (bytes == -1) {
         perror("!!Error reading file!!");
         close(fd);
         freeScores(scores);
