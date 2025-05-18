@@ -47,40 +47,37 @@ void startMonitor(){
     int toMonitor[2], fromMonitor[2], readyPipe[2];
 
     if (pipe(toMonitor) == -1 || pipe(fromMonitor) == -1 || pipe(readyPipe) == -1) {
-        perror("The pipe process failed");
+        perror("!!The pipe process failed!!");
         exit(1);
     }
 
-    pid = fork();
+        pid = fork();
     if (pid == 0) {
-        // copil
-        close(readyPipe[0]); // nu citim
-        if (dup2(toMonitor[0], 3) == -1 || dup2(fromMonitor[1], 4) == -1) {
-            perror("dup2");
-            exit(1);
-        }
 
-        // Informăm părintele că suntem gata
+        close(toMonitor[1]);
+        close(fromMonitor[0]);
+        close(readyPipe[0]);
+
+        dup2(toMonitor[0], STDIN_FILENO);
+        dup2(fromMonitor[1], STDOUT_FILENO);
+        dup2(fromMonitor[1], STDERR_FILENO);
+
+        close(toMonitor[0]);
+        close(fromMonitor[1]);
+
         write(readyPipe[1], "R", 1);
         close(readyPipe[1]);
 
-        close(toMonitor[0]);
-        close(toMonitor[1]);
-        close(fromMonitor[0]);
-        close(fromMonitor[1]);
-
         execl("./monitor", "monitor", NULL);
-        perror("Exec failed");
+        perror("!!Monitor failed to start!!");
         exit(1);
     }
 
-    // părinte
     close(toMonitor[0]);
     close(fromMonitor[1]);
     close(readyPipe[1]);
 
     char c;
-    // Așteptăm ca monitorul să fie gata
     if (read(readyPipe[0], &c, 1) != 1) {
         perror("Failed to sync with monitor");
         exit(1);
@@ -90,7 +87,7 @@ void startMonitor(){
     monitorPipeWrite = toMonitor[1];
     monitorPipeRead = fromMonitor[0];
 
-    printf("~Monitor started with PID %d~\n", pid);
+    printf("~Monitor started~\n");
 }
 
 void handleCommands(const char* command){
@@ -101,7 +98,7 @@ void handleCommands(const char* command){
 
     if(write(monitorPipeWrite, command, strlen(command)) == -1 ||
        write(monitorPipeWrite, "\n", 1) == -1){
-        perror("Failed to write to monitor pipe");
+        perror("Failed to write to monitor");
         return;
     }
 
@@ -116,10 +113,9 @@ void handleCommands(const char* command){
             break;
     }
     if(n == -1) {
-        perror("Error reading from monitor");
+        perror("Failed to read from monitor");
     }
 }
-
 
 void waitForMonitor(){
     while(monitorStatus()){
@@ -148,7 +144,7 @@ int main() {
     char treasureId[2048];
 
     while (1) {
-        printf("\n> ");
+        printf("\n > ");
         fflush(stdout);
         if (!fgets(input, sizeof(input), stdin))
             break;
@@ -170,12 +166,18 @@ int main() {
                 snprintf(command, sizeof(command), "listTreasures %s", huntId);
                 handleCommands(command);
             }
+            else {
+                printf("!Usage: listTreasures <hunt_id>\n");
+            }
         } 
         else if (strncmp(input, "viewTreasure", 12) == 0) {
             if (sscanf(input, "viewTreasure %s %s", huntId, treasureId) == 2) {
                 char command[2048];
                 snprintf(command, sizeof(command), "viewTreasure %s %s", huntId, treasureId);
                 handleCommands(command);
+            }
+            else {
+                printf("!Usage: viewTreasure <hunt_id> <treasure_id>\n");
             }
         }
         else if (strcmp(input, "calculateScores") == 0) {

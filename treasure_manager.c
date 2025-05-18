@@ -243,21 +243,6 @@ void listHunts() {
     closedir(dir);
 }
 
-<<<<<<< HEAD
-void calculateScore(const char* huntId) {
-    int pfd[2];
-    if (pipe(pfd) == -1) {
-        perror("!!The pipe proccess failed!!");
-        exit(1);
-    }
-
-    pid_t pid = fork();
-    if (pid < 0) {
-        perror("!!The fork process failed!!!");
-        exit(1);
-    }
-}
-=======
 void calculateScores() {
     DIR *dir = opendir(".");
     if (!dir) {
@@ -313,4 +298,4 @@ void calculateScores() {
 
     closedir(dir);
 }
->>>>>>> 2c8cc28 (tried to do phase 3 but failed :()
+
